@@ -8,13 +8,19 @@ import { CustomHttpResponse, Profile } from '../interface/app.states';
 })
 export class UserService {
  
-  private readonly server: string = '';
+  private readonly server: string = 'http://localhost:8080';
 
   constructor(private http: HttpClient) { }
 
   login$ = (email: string, password: string) => <Observable<CustomHttpResponse<Profile>>>
-  this.http.post<CustomHttpResponse<Profile>>
-  (`${this.server}/user/login`, {email, password})
+  this.http.post<CustomHttpResponse<Profile>> (`${this.server}/user/login`, {email, password})
+  .pipe(
+    tap(console.log),
+    catchError(this.handleError)
+  )
+
+  verifyCode$ = (email: string, code: number) => <Observable<CustomHttpResponse<Profile>>>
+  this.http.get<CustomHttpResponse<Profile>> (`${this.server}/user/verify/code?email=${email}&code=${code}`)
   .pipe(
     tap(console.log),
     catchError(this.handleError)
@@ -26,9 +32,9 @@ export class UserService {
       errorMessage = `A client error occured - ${error.error.message}`;
     }else{ 
       if(error.error.reason){
-        errorMessage = error.error.message;
+        errorMessage = error.error.reason;
       }else{
-        errorMessage = `An error occured - Error status ${error.status}`;
+        errorMessage = `An error occured - Error status ${error.error.status}`;
       }
     }
     return throwError(() => errorMessage);
